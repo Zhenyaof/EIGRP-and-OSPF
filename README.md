@@ -325,3 +325,126 @@ By completing this lab, you have:
  Verified **OSPF route propagation and summarization**.  
 
 
+
+```markdown
+# OSPFv2 Route Summarization and Filtering  
+
+## **Overview**  
+This lab explores **OSPFv2 route summarization and filtering** techniques, which are essential for optimizing network efficiency, reducing LSDB size, and improving security. You will learn how **route summarization** consolidates multiple prefixes into a single summary route and how **route filtering** controls which routes are advertised or received by OSPF neighbors.  
+
+## **Objectives**  
+
+### **Part 2: OSPFv2 Route Summarization**  
+- Implement **OSPF summarization** on ABRs.  
+- Reduce **routing table size** and improve network efficiency.  
+- Understand the impact of summarization on inter-area OSPF routing.  
+
+### **Part 3: OSPFv2 Route Filtering**  
+- Learn **how route filtering affects OSPF topology**.  
+- Use filtering to **control traffic flows and optimize performance**.  
+- Implement different **OSPF filtering techniques**:
+  1. **Filtering with summarization**  
+  2. **Area-based filtering**  
+  3. **Local OSPF filtering with distribute-lists**  
+
+---
+
+
+## **Configuration Steps**  
+
+### **Step 1: Implement OSPF Route Summarization on the ABR**  
+Summarization reduces the number of OSPF routes advertised between areas, optimizing network performance.  
+
+#### **Configure Summarization on the ABR**  
+```bash
+router ospf 1
+ area 1 range 192.168.0.0 255.255.252.0
+```
+- This command **summarizes multiple /24 subnets** (e.g., 192.168.1.0/24, 192.168.2.0/24, etc.) into a single **/22 route**.  
+- It **reduces routing table size** and limits unnecessary updates.  
+
+#### **Verify the Summarization**  
+```bash
+show ip route ospf
+show ip ospf database summary
+```
+- The **routing table** should now display a **single summarized route** instead of multiple individual routes.  
+
+---
+
+## **Step 2: OSPF Route Filtering Techniques**  
+
+### **1. Filtering with Summarization**  
+Summarization itself can act as a filtering mechanism by limiting the propagation of unnecessary subnet details.  
+```bash
+router ospf 1
+ area 1 range 192.168.0.0 255.255.252.0 not-advertise
+```
+- This prevents the summarized route from being advertised to other areas.  
+
+### **2. Area Filtering on the ABR**  
+To filter specific prefixes from being sent between OSPF areas, apply **prefix-list-based filtering** on the ABR.  
+
+#### **Define a Prefix List for Filtering**  
+```bash
+ip prefix-list BLOCKED-RANGE seq 5 deny 192.168.3.0/24
+ip prefix-list BLOCKED-RANGE seq 10 permit 0.0.0.0/0 le 32
+```
+#### **Apply the Filter to OSPF on the ABR**  
+```bash
+router ospf 1
+ area 1 filter-list prefix BLOCKED-RANGE in
+```
+- The **prefix list blocks 192.168.3.0/24** from being advertised into Area 1.  
+
+#### **Verify the Area Filtering**  
+```bash
+show ip ospf database summary
+```
+- The **blocked route** should no longer appear in the LSDB for Area 1.  
+
+---
+
+### **3. Local OSPF Filtering Using a Distribute List**  
+If you want a route to **exist in the LSDB but not be installed in the routing table**, use a **distribute list**.  
+
+#### **Define an Access Control List (ACL)**  
+```bash
+access-list 10 deny 192.168.4.0 0.0.0.255
+access-list 10 permit any
+```
+#### **Apply the Distribute List to OSPF**  
+```bash
+router ospf 1
+ distribute-list 10 in
+```
+- The route **remains in the LSDB** but is **not installed in the local routing table**.  
+
+#### **Verify the Distribute List Filtering**  
+```bash
+show ip route ospf
+```
+- The **filtered route should not appear in the routing table**.  
+
+---
+
+## **Verification Commands**  
+Use these commands to confirm OSPF summarization and filtering:  
+
+```bash
+show ip route ospf
+show ip ospf database
+show ip ospf border-routers
+show ip ospf database summary
+```
+- Verify **route summarization** and ensure **filtered routes are not advertised**.  
+- Confirm the **prefix-list filtering and distribute-list impact**.  
+
+---
+
+## **Summary**  
+By completing this lab, you have:  
+ Configured **OSPF route summarization** to optimize routing table efficiency.  
+ Implemented **OSPF route filtering** using **summarization, area filters, and distribute lists**.  
+ Verified how **filtered routes impact the OSPF topology** and LSDB.  
+
