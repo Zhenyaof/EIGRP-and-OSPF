@@ -151,5 +151,98 @@ show run | section eigrp
 By completing this lab, you have:  
  Configured and verified **EIGRP for IPv4**.  
  Secured routing updates using **passive interfaces and MD5 authentication**.  
-Optimized path selection with **variance for unequal-cost load balancing**.  
+Optimized path selection with **variance for unequal-cost load balancing**. 
+
+
+```markdown
+# Implement Advanced EIGRP for IPv4 Features  
+
+## Overview  
+This lab focuses on **advanced EIGRP for IPv4** features, including customizing timers, route summarization, query propagation control, and route filtering. By modifying these parameters, you will **optimize EIGRP performance, enhance scalability, and reduce unnecessary traffic** in large-scale networks.  
+
+## Objectives  
+
+### **Part 2: Implement EIGRP for IPv4**  
+- Enable and verify **EIGRP for IPv4** operation.  
+- Establish **neighbor adjacencies** and check routing table updates.  
+
+### **Part 3: Implement Advanced EIGRP Features**  
+- **Modify EIGRP timers** to adjust convergence speed.  
+- **Create summarized routes** to optimize routing tables.  
+- **Control EIGRP query propagation** using stub routers.  
+- **Filter EIGRP routes** with a distribute list.  
+
+
+### **Initial Setup**  
+Ensure the following configurations before starting:  
+- **IP addressing** is configured.  
+- **EIGRP AS 100** is enabled across all routers.  
+- **Full connectivity** is established using EIGRP.  
+
+---
+
+## **Configuration Steps**  
+
+### **Step 1: Modify EIGRP Timers**  
+Adjust **hello and hold timers** to control how quickly EIGRP detects failures.  
+```bash
+interface GigabitEthernet0/0
+ ip hello-interval eigrp 100 5
+ ip hold-time eigrp 100 15
+```
+- Reducing the **hello interval** makes failure detection faster.  
+- The **hold-time** should be at least three times the hello interval.  
+
+### **Step 2: Create Summarized Routes in EIGRP**  
+Manually summarize networks to reduce routing table size and enhance efficiency.  
+```bash
+interface GigabitEthernet0/0
+ ip summary-address eigrp 100 192.168.0.0 255.255.252.0
+```
+- **Summarization reduces EIGRP updates**, improving performance.  
+- This creates a single **/22 route** instead of multiple smaller subnets.  
+
+### **Step 3: Control Query Propagation with EIGRP Stub Routers**  
+Stub routers help **limit unnecessary queries** in large networks, reducing overhead.  
+```bash
+router eigrp 100
+ eigrp stub connected summary
+```
+- The **stub router only advertises directly connected and summarized routes**.  
+- This prevents it from being queried for unreachable destinations.  
+
+### **Step 4: Filter EIGRP Routes with a Distribute List**  
+Use **distribute lists** to control which routes are advertised.  
+```bash
+access-list 10 deny 192.168.3.0
+access-list 10 permit any
+router eigrp 100
+ distribute-list 10 out GigabitEthernet0/1
+```
+- Blocks **192.168.3.0/24** from being advertised out **GigabitEthernet0/1**.  
+- Prevents unnecessary route propagation in specific parts of the network.  
+
+---
+
+## **Verification Commands**  
+Use the following commands to **validate and troubleshoot** your configuration:  
+```bash
+show ip eigrp interfaces
+show ip eigrp neighbors
+show ip eigrp topology
+show ip eigrp traffic
+show ip protocols
+```
+- Check **EIGRP neighbor relationships** and interface participation.  
+- Verify **route summarization** and **filtered advertisements**.  
+- Ensure stub routers **do not receive unnecessary queries**.  
+
+---
+
+## **Summary**  
+By completing this lab, you have:  
+ Adjusted **EIGRP timers** for faster convergence.  
+Implemented **manual summarization** to optimize routing tables.  
+Controlled **query propagation** using EIGRP stub routers.  
+Filtered **unwanted route advertisements** with distribute lists.  
 
